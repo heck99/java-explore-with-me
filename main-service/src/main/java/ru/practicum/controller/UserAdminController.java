@@ -1,6 +1,6 @@
 package ru.practicum.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.UserDto;
 import ru.practicum.service.UserService;
@@ -10,14 +10,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/admin/users")
+@AllArgsConstructor
 public class UserAdminController {
 
     UserService userService;
-
-    @Autowired
-    public UserAdminController(UserService userService) {
-        this.userService = userService;
-    }
 
     @PostMapping
     public UserDto createUser(@Valid @RequestBody UserDto user) {

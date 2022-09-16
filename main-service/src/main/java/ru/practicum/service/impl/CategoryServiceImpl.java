@@ -1,0 +1,55 @@
+package ru.practicum.service.impl;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import ru.practicum.dto.CategoryDto;
+import ru.practicum.exception.NotFound;
+import ru.practicum.mapper.CategoryMapper;
+import ru.practicum.model.Category;
+import ru.practicum.repository.CategoryRepository;
+import ru.practicum.service.CategoryService;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class CategoryServiceImpl implements CategoryService {
+
+    private final CategoryRepository categoryRepository;
+    private final CategoryMapper cm = new CategoryMapper();
+
+    //TODO:добавить обработку исключения уникальности https://www.baeldung.com/spring-dataIntegrityviolationexception
+
+    @Override
+    public CategoryDto createCategory(CategoryDto category) {
+        return cm.toCategoryDto(categoryRepository.save(cm.fromCategoryDto(category)));
+    }
+
+    @Override
+    public CategoryDto updateCategory(CategoryDto categorydto) {
+        Category category = categoryRepository.findById(categorydto.getId()).orElseThrow(NotFound::new);
+        if (category.getName() != null) {
+            category.setName(categorydto.getName());
+        }
+        return cm.toCategoryDto(categoryRepository.save(category));
+    }
+
+    @Override
+    public void deleteCategory(int categoryId) {
+        getCategoryById(categoryId);
+        categoryRepository.deleteById(categoryId);
+    }
+
+    @Override
+    public CategoryDto getCategoryById(int categoryId) {
+        return cm.toCategoryDto(categoryRepository.findById(categoryId).orElseThrow(NotFound::new));
+    }
+
+    @Override
+    public List<CategoryDto> getAllCategories(int from, int size) {
+        return categoryRepository.findAll(PageRequest.of(from / size, size)).stream().map(cm::toCategoryDto)
+                .collect(Collectors.toList());
+    }
+}

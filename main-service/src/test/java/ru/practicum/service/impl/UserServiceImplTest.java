@@ -34,7 +34,6 @@ class UserServiceImplTest {
     User user2 = new User(2, "user2", "user2@mail.com");
     User user3 = new User(3, "user3", "user3@mail.com");
     UserDto newUserDto = new UserDto(null, "user1", "user1@mail.com");
-    User user1Dto = new User(1, "user1", "user1@mail.com");
 
     @BeforeEach
     void init() {
@@ -42,7 +41,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void TestCreateUserCorrect() {
+    public void testCreateUserCorrect() {
         when(userRepository.save(any())).thenReturn(user1);
         UserDto userDto = service.createUser(newUserDto);
         Assertions.assertEquals(userDto.getId(), 1);
@@ -52,22 +51,22 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void TestDeleteUserCorrect() {
-        when(userRepository.findById(any())).thenReturn(Optional.of(user1Dto));
+    public void testDeleteUserCorrect() {
+        when(userRepository.findById(any())).thenReturn(Optional.of(user1));
         service.deleteUser(1);
         verify(userRepository, times(1)).deleteById(any());
         verify(userRepository, times(1)).findById(any());
     }
 
     @Test
-    public void TestDeleteUserNotFound() {
+    public void testDeleteUserNotFound() {
         when(userRepository.findById(any())).thenReturn(Optional.empty());
         Assertions.assertThrows(NotFound.class, () -> service.deleteUser(1));
         verify(userRepository, times(1)).findById(any());
     }
 
     @Test
-    public void TestGetUsersByIdsCorrect() {
+    public void testGetUsersByIdsCorrect() {
         when(userRepository.findByIdIn(any())).thenReturn(List.of(user1, user2, user3));
         List<UserDto> list = service.getUsers(10, 10, List.of(1, 2, 3));
         Assertions.assertEquals(list.size(), 3);
@@ -78,7 +77,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void TestGetAllUsersCorrect() {
+    public void testGetAllUsersCorrect() {
         when(userRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2, user3)));
         List<UserDto> list = service.getUsers(10, 10, null);
         Assertions.assertEquals(list.size(), 3);

@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS categories
 (
     category_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
-    name        varchar NOT NULL,
+    name        varchar NOT NULL UNIQUE,
     PRIMARY KEY (category_id)
 );
 CREATE TABLE IF NOT EXISTS users
