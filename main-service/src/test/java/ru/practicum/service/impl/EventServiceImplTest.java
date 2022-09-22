@@ -49,7 +49,7 @@ class EventServiceImplTest {
 
     Event event1 = new Event(1, "annotation1", category1, LocalDateTime.now(), "description1",
             newEventTime, user1, 100.2, 200.1, true, 0, null,
-            false, State.PENDING, "title1", 0, null);
+            false, State.PENDING, "title1", 0);
     CategoryDto category1Dto = new CategoryDto(1, "category1");
 
     @BeforeEach
