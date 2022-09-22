@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS events
     request_moderation boolean   DEFAULT true,
     state              varchar(10),
     title              text    NOT NULL,
+    views              integer   DEFAULT 0,
     PRIMARY KEY (event_id),
     CONSTRAINT "events_categories_FK" FOREIGN KEY (category_id)
         REFERENCES categories (category_id)
@@ -64,9 +65,10 @@ CREATE TABLE IF NOT EXISTS compilations
 
 CREATE TABLE IF NOT EXISTS compilations_events
 (
+    id             integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     event_id       integer,
     compilation_id integer,
-    PRIMARY KEY (event_id, compilation_id),
+    PRIMARY KEY (id),
     CONSTRAINT "events_FK" FOREIGN KEY (event_id)
         REFERENCES events (event_id)
         ON DELETE CASCADE,

@@ -8,7 +8,7 @@ import ru.practicum.dto.UserDto;
 import ru.practicum.exception.NotFound;
 import ru.practicum.mapper.UserMapper;
 import ru.practicum.repository.UserRepository;
-import ru.practicum.service.UserService;
+import ru.practicum.service.UserServiceFull;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserServiceFull {
 
     private final UserRepository userRepository;
     private final UserMapper um = new UserMapper();
@@ -46,4 +46,6 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserById(int id) {
         return um.toUserDto(userRepository.findById(id).orElseThrow(NotFound::new));
     }
+
+
 }

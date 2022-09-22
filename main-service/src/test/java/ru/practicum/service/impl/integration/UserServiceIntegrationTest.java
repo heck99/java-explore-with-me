@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.UserDto;
 import ru.practicum.model.User;
-import ru.practicum.service.UserService;
+import ru.practicum.service.impl.UserServiceImpl;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class UserServiceIntegrationTest {
 
     private final EntityManager em;
-    private final UserService service;
+    private final UserServiceImpl service;
 
     @Test
     public void getAllCorrect() {
@@ -65,5 +65,12 @@ public class UserServiceIntegrationTest {
 
         users = query0.getResultList();
         assertEquals(users.size(), 4);
+    }
+
+    @Test
+    public void getUserByIdCorrect() {
+        UserDto user = service.getUserById(1);
+        assertEquals(user.getId(), 1);
+        assertEquals(user.getName(), "user1");
     }
 }

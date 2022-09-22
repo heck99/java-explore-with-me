@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -65,4 +66,10 @@ public class Event {
 
     @Column(name = "title")
     private String title;
+
+    @Column(name = "views")
+    Integer views;
+
+    @OneToMany(mappedBy = "event")
+    Set<ParticipationRequest> requests;
 }

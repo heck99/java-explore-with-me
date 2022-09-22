@@ -1,5 +1,5 @@
 package ru.practicum.model;
 
 public enum RequestState {
-    PENDING, APPROVED, CANCELED
+    PENDING, CONFIRMED, REJECTED, CANCELED
 }
