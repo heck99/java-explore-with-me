@@ -47,4 +47,10 @@ public class EventPrivateController {
                                   @Valid @RequestBody NewRatingDto rating) {
         return eventService.createRating(userId, eventId, rating);
     }
+
+    @PatchMapping("/{eventId}/ratings")
+    public RatingDto updateRating(@PathVariable Integer userId, @PathVariable Integer eventId,
+                                  @RequestBody NewRatingDto rating) {
+        return eventService.updateRating(userId, eventId, rating);
+    }
 }

@@ -42,4 +42,9 @@ public class EventAdminController {
     public EventFullDto rejectEvent(@PathVariable int eventId) {
         return eventService.rejectEvent(eventId);
     }
+
+    @DeleteMapping("/ratings/{ratingId}")
+    public void deleteRating(@PathVariable int ratingId) {
+        eventService.deleteRating(ratingId);
+    }
 }

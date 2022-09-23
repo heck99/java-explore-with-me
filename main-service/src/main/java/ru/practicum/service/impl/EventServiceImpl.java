@@ -290,4 +290,25 @@ public class EventServiceImpl implements EventServiceFull {
                 .map(rm::toRatingDto).collect(Collectors.toList());
     }
 
+    @Override
+    public void deleteRating(int ratingId) {
+        ratingRepository.findById(ratingId).orElseThrow(NotFound::new);
+        ratingRepository.deleteById(ratingId);
+    }
+
+    @Override
+    public RatingDto updateRating(int userId, int ratingId, NewRatingDto ratingDto) {
+        Rating rating = ratingRepository.findById(ratingId).orElseThrow(NotFound::new);
+        if (userId != rating.getUser().getId()) {
+            throw new NoAccess();
+        }
+        if (ratingDto.getDescription() != null) {
+            rating.setDescription(ratingDto.getDescription());
+        }
+        if (ratingDto.getMark() != null) {
+            rating.setMark(ratingDto.getMark());
+        }
+        return rm.toRatingDto(ratingRepository.save(rating));
+    }
+
 }

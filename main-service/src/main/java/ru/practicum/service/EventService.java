@@ -35,4 +35,8 @@ public interface EventService {
     RatingDto createRating(int userId, int eventId, NewRatingDto ratingDto);
 
     List<RatingDto> getAllRatingToEvent(int eventId, int from, int size);
+
+    void deleteRating(int ratingId);
+
+    RatingDto updateRating(int userId, int ratingId, NewRatingDto ratingDto);
 }
