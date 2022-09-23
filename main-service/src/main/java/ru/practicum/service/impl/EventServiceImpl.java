@@ -273,17 +273,18 @@ public class EventServiceImpl implements EventServiceFull {
     @Override
     public RatingDto createRating(int userId, int eventId, NewRatingDto ratingDto) {
         UserDto user = userService.getUserById(userId);
-        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
         if (event.getEventDate().isAfter(LocalDateTime.now())) {
             throw new IncorrectParameters("Нельзя оценить событие, которое ещё не прошло");
         }
         Optional<ParticipationRequest> request = requestService.getRequestByEventAndUser(eventId, userId);
 
         if (request.isEmpty()) {
-            throw new NoAccess();
+            throw new NoAccess("оценивать могут только пользователи, которые имеют подтверждённый запрос");
         }
-        if (!(request.get().getStatus() == RequestState.CONFIRMED)) {
-            throw new NoAccess();
+        if (request.get().getStatus() != RequestState.CONFIRMED) {
+            throw new NoAccess("Нельзя оценить событие, которое не подтверждено");
         }
         ratingRepository.findByEventIdAndUserId(eventId, userId)
                 .ifPresent(element -> {
@@ -303,15 +304,17 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public void deleteRating(int ratingId) {
-        ratingRepository.findById(ratingId).orElseThrow(NotFound::new);
+        ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new NotFound(String.format("ретинг с id = %d не найден", ratingId)));
         ratingRepository.deleteById(ratingId);
     }
 
     @Override
     public RatingDto updateRating(int userId, int ratingId, NewRatingDto ratingDto) {
-        Rating rating = ratingRepository.findById(ratingId).orElseThrow(NotFound::new);
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new NotFound(String.format("ретинг с id = %d не найден", ratingId)));
         if (userId != rating.getUser().getId()) {
-            throw new NoAccess();
+            throw new NoAccess("обновить рейтинг может только его создатель");
         }
         if (ratingDto.getDescription() != null) {
             rating.setDescription(ratingDto.getDescription());

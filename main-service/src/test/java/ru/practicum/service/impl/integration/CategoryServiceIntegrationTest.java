@@ -46,7 +46,7 @@ public class CategoryServiceIntegrationTest {
     }
 
     @Test
-    public void UpdateCategoryCorrect() {
+    public void updateCategoryCorrect() {
         CategoryDto categoryDto = service.getCategoryById(1);
         assertEquals(categoryDto.getId(), 1);
         assertEquals(categoryDto.getName(), "category1");
