@@ -49,26 +49,30 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public void deleteCompilation(int compId) {
-        compilationRepository.findById(compId).orElseThrow(NotFound::new);
+        compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId)));
         compilationRepository.deleteById(compId);
     }
 
     @Override
     public void deleteEventFromCompilation(int eventId, int compId) {
-        EventCompilation eventCompilation = eventCompilationRepository.findByEventIdAndCompilationId(eventId, compId).orElseThrow(NotFound::new);
+        EventCompilation eventCompilation = eventCompilationRepository.findByEventIdAndCompilationId(eventId, compId)
+                .orElseThrow(() -> new NotFound(String.format("В подборке с id = %d не найдено событие с id = %d", compId, eventId)));
         eventCompilationRepository.deleteById(eventCompilation.getId());
     }
 
     @Override
     public void addEventToCompilation(int eventId, int compId) {
         EventCompilation eventCompilation = new EventCompilation(null, em.fromEventFullDto(eventService.getEventById(eventId)),
-                compilationRepository.findById(compId).orElseThrow(NotFound::new));
+                compilationRepository.findById(compId)
+                        .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId))));
         eventCompilationRepository.save(eventCompilation);
     }
 
     @Override
     public void unpinCompilation(int compId) {
-        Compilation compilation = compilationRepository.findById(compId).orElseThrow(NotFound::new);
+        Compilation compilation = compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId)));
         if (!compilation.getPinned()) {
             throw new IncorrectParameters("Подборка уже откреплена");
         }
@@ -78,7 +82,8 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public void pinCompilation(int compId) {
-        Compilation compilation = compilationRepository.findById(compId).orElseThrow(NotFound::new);
+        Compilation compilation = compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId)));
         if (compilation.getPinned()) {
             throw new IncorrectParameters("Подборка уже закреплена");
         }
@@ -88,7 +93,8 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto getCompilationById(int compId) {
-        return cm.toCompilationDto(compilationRepository.findById(compId).orElseThrow(NotFound::new));
+        return cm.toCompilationDto(compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId))));
     }
 
     @Override

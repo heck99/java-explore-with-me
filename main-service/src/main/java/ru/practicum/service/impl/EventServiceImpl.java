@@ -66,10 +66,15 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public EventFullDto updateEvent(UpdateEventRequest eventDto, int userId) {
-        Event event = eventRepository.findById(eventDto.getEventId()).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventDto.getEventId())
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventDto.getEventId())));
 
         if (event.getInitiator().getId() != userId) {
-            throw new NoAccess();
+            throw new NoAccess(String.format("пользователь с id = %d не может редактировать событие с id = %d", userId, eventDto.getEventId()));
+        }
+
+        if (event.getState() != State.PUBLISHED) {
+            throw new NoAccess("Нельзя изменять опубликованное событие");
         }
         if (eventDto.getAnnotation() != null) {
             event.setAnnotation(eventDto.getAnnotation());
@@ -92,13 +97,14 @@ public class EventServiceImpl implements EventServiceFull {
         if (eventDto.getTitle() != null) {
             event.setTitle(eventDto.getTitle());
         }
-
+        event.setState(State.PENDING);
         return em.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
     public EventFullDto updateEvent(AdminUpdateEventRequest eventDto, int eventId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
 
         if (eventDto.getAnnotation() != null) {
             event.setAnnotation(eventDto.getAnnotation());
@@ -150,11 +156,11 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public EventFullDto getEventByUser(int eventId, int userId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
         if (event.getInitiator().getId() != userId) {
-            throw new NoAccess();
+            throw new NoAccess(String.format("пользователь с id = %d не имеет доступ к событию с id = %d", userId, eventId));
         }
-
         EventFullDto toReturn = em.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
         return toReturn;
@@ -162,9 +168,10 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public EventFullDto cancelEvent(int eventId, int userId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
         if (event.getState() != State.PENDING) {
-            throw new NoAccess();
+            throw new NoAccess("Нельзя отменить событие, которое не находится в состоянии ожидания подтверждения");
         }
         event.setState(State.CANCELED);
         return em.toEventFullDto(eventRepository.save(event));
@@ -172,13 +179,14 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public EventFullDto publicEvent(int eventId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
         if (event.getEventDate().minusHours(1).isBefore(LocalDateTime.now())) {
-            throw new NoAccess();
+            throw new NoAccess("Нельзя публиковать событие , до начала которого осталось менее часа");
         }
 
         if (event.getState() != State.PENDING) {
-            throw new NoAccess();
+            throw new NoAccess("Нельзя публиковать событие, которое не находится в состоянии ожидания подтверждения");
         }
         event.setState(State.PUBLISHED);
         return em.toEventFullDto(eventRepository.save(event));
@@ -186,9 +194,10 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public EventFullDto rejectEvent(int eventId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
         if (event.getState() != State.PENDING) {
-            throw new NoAccess();
+            throw new NoAccess("Нельзя отклонить событие, которое не находится в состоянии ожидания подтверждения");
         }
         event.setState(State.CANCELED);
         return em.toEventFullDto(eventRepository.save(event));
@@ -196,9 +205,10 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public EventFullDto getPublishedEvent(int eventId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
         if (event.getState() != State.PUBLISHED) {
-            throw new NoAccess();
+            throw new NotFound(String.format("Событие с id = %d не опубликовано", eventId));
         }
         EventFullDto toReturn = em.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
@@ -207,7 +217,8 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public EventFullDto getEventById(int eventId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
         eventRepository.addView(eventId);
         EventFullDto toReturn = em.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));

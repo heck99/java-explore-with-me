@@ -44,8 +44,8 @@ public class UserServiceImpl implements UserServiceFull {
     }
 
     public UserDto getUserById(int id) {
-        return um.toUserDto(userRepository.findById(id).orElseThrow(NotFound::new));
+        return um.toUserDto(userRepository.findById(id)
+                .orElseThrow(() -> new NotFound(String.format("пользователь с idf = %d не найден", id))));
     }
-
 
 }

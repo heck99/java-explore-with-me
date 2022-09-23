@@ -47,7 +47,7 @@ public class RequestServiceImpl implements RequestServiceFull {
         EventFullDto event = eventService.getEventById(eventId);
 
         if (event.getState() != State.PUBLISHED) {
-            throw new NoAccess();
+            throw new NoAccess("Нельзя учвствовать в неопубликованном событии");
         }
 
         if (event.getInitiator().getId() == userId) {
@@ -55,7 +55,7 @@ public class RequestServiceImpl implements RequestServiceFull {
         }
 
         if (event.getParticipantLimit() != 0 && event.getParticipantLimit() <= event.getConfirmedRequests()) {
-            throw new NoAccess();
+            throw new NoAccess("Превышен лимит запросов на событие");
         }
 
         UserDto user = userService.getUserById(userId);
@@ -79,19 +79,19 @@ public class RequestServiceImpl implements RequestServiceFull {
 
     @Override
     public ParticipationRequestDto cancelRequest(int userId, int requestId) {
-        ParticipationRequest request = requestRepository.findById(requestId).orElseThrow(NotFound::new);
+        ParticipationRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFound(String.format("запрос с id = %d не найден", requestId)));
 
         if (userId != request.getRequester().getId()) {
-            throw new NoAccess();
+            throw new NoAccess("Только создатель запроса может отменить его");
         }
         if (request.getStatus() != RequestState.PENDING) {
-            throw new NoAccess();
-            //"Нельзя отменить запрос, который не находится в статусе ожидания подтверждения"
+            throw new NoAccess("Нельзя отменить запрос, который не находится в статусе ожидания подтверждения");
         }
         if (request.getEvent().getParticipantLimit() > 0) {
             int count = requestRepository.countAllByEventIdAndStatus(requestId, RequestState.CONFIRMED);
             if (request.getEvent().getParticipantLimit() <= count) {
-                throw new NoAccess();
+                throw new NoAccess("Превышен лимит запросов на событие");
             }
         }
         request.setStatus(RequestState.CANCELED);
@@ -100,13 +100,13 @@ public class RequestServiceImpl implements RequestServiceFull {
 
     @Override
     public ParticipationRequestDto confirmRequest(int userId, int requestId, int eventId) {
-        ParticipationRequest request = requestRepository.findById(requestId).orElseThrow(NotFound::new);
+        ParticipationRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFound(String.format("запрос с id = %d не найден", requestId)));
         if (request.getStatus() != RequestState.PENDING) {
-            throw new NoAccess();
-            //"Нельзя подтвердить запрос, который не находится в статусе ожидания подтверждения"
+            throw new NoAccess("Нельзя подтвердить запрос, который не находится в статусе ожидания подтверждения");
         }
         if (request.getEvent().getInitiator().getId() != userId) {
-            throw new NoAccess();
+            throw new NoAccess("Только организатор события может подтвердить запрос");
         }
 
         if (request.getEvent().getId() != eventId) {
@@ -115,7 +115,7 @@ public class RequestServiceImpl implements RequestServiceFull {
         int count = requestRepository.countAllByEventIdAndStatus(eventId, RequestState.CONFIRMED);
 
         if (request.getEvent().getParticipantLimit() <= count) {
-            throw new NoAccess();
+            throw new NoAccess("Превышен лимит запросов на событие");
         }
         request.setStatus(RequestState.CONFIRMED);
         request = requestRepository.save(request);
@@ -128,17 +128,17 @@ public class RequestServiceImpl implements RequestServiceFull {
 
     @Override
     public ParticipationRequestDto rejectRequest(int userId, int requestId, int eventId) {
-        ParticipationRequest request = requestRepository.findById(requestId).orElseThrow(NotFound::new);
+        ParticipationRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFound(String.format("запрос с id = %d не найден", requestId)));
         if (request.getEvent().getInitiator().getId() != userId) {
-            throw new NoAccess();
+            throw new NoAccess("Только организатор события может отклонить запрос");
         }
 
         if (request.getEvent().getId() != eventId) {
             throw new IncorrectParameters("eventId не соответствует id события для которого создан запрос с requestId");
         }
         if (request.getStatus() != RequestState.PENDING) {
-            throw new NoAccess();
-            //"Нельзя отменить запрос, который не находится в статусе ожидания подтверждения"
+            throw new NoAccess("Нельзя отменить запрос, который не находится в статусе ожидания подтверждения");
         }
         request.setStatus(RequestState.REJECTED);
         return rm.toParticipationRequestDto(requestRepository.save(request));
@@ -149,7 +149,7 @@ public class RequestServiceImpl implements RequestServiceFull {
         EventFullDto event = eventService.getPublishedEvent(eventId);
 
         if (userId != event.getInitiator().getId()) {
-            throw new NoAccess();
+            throw new NoAccess("Только организатор имеет доступ к этому событию");
         }
         return requestRepository.findAllByEventId(eventId).stream().map(rm::toParticipationRequestDto).collect(Collectors.toList());
     }
