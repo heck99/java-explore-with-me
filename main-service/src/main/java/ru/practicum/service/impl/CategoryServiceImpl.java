@@ -29,7 +29,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto updateCategory(CategoryDto categorydto) {
-        Category category = categoryRepository.findById(categorydto.getId()).orElseThrow(NotFound::new);
+        Category category = categoryRepository.findById(categorydto.getId())
+                .orElseThrow(() -> new NotFound(String.format("Категория с id = %d не найдена", categorydto.getId())));
         if (category.getName() != null) {
             category.setName(categorydto.getName());
         }
@@ -44,7 +45,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto getCategoryById(int categoryId) {
-        return cm.toCategoryDto(categoryRepository.findById(categoryId).orElseThrow(NotFound::new));
+        return cm.toCategoryDto(categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFound(String.format("Категория с id = %d не найдена", categoryId))));
     }
 
     @Override
