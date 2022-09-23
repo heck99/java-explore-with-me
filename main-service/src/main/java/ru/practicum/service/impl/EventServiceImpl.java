@@ -11,11 +11,13 @@ import ru.practicum.exception.NotFound;
 import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.mapper.EventMapper;
 
+import ru.practicum.mapper.RatingMapper;
 import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.*;
 import ru.practicum.repository.CustomEventRepository;
 import ru.practicum.repository.EventRepository;
 
+import ru.practicum.repository.RatingRepository;
 import ru.practicum.service.CategoryService;
 import ru.practicum.service.EventServiceFull;
 import ru.practicum.service.RequestServiceFull;
@@ -23,6 +25,7 @@ import ru.practicum.service.UserServiceFull;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,13 +42,18 @@ public class EventServiceImpl implements EventServiceFull {
 
     private final CustomEventRepository customEventRepository;
 
+    private final RatingMapper rm = new RatingMapper();
+
+    private final RatingRepository ratingRepository;
+
     public EventServiceImpl(EventRepository eventRepository, UserServiceFull userService, CategoryService categoryService,
-                            @Lazy RequestServiceFull requestService, CustomEventRepository customEventRepository) {
+                            @Lazy RequestServiceFull requestService, CustomEventRepository customEventRepository, RatingRepository ratingRepository) {
         this.eventRepository = eventRepository;
         this.userService = userService;
         this.categoryService = categoryService;
         this.customEventRepository = customEventRepository;
         this.requestService = requestService;
+        this.ratingRepository = ratingRepository;
     }
 
 
@@ -145,6 +153,8 @@ public class EventServiceImpl implements EventServiceFull {
         return eventRepository.findAllByInitiatorId(userId, PageRequest.of(from / size, size))
                 .stream().map(em::toEventShortDto)
                 .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
+                .peek(element -> element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId())))
+                .peek(element -> element.setEventRating(ratingRepository.getEventRating(element.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -157,6 +167,7 @@ public class EventServiceImpl implements EventServiceFull {
 
         EventFullDto toReturn = em.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
+        toReturn.setAvgInitiatorRating(ratingRepository.getAVGUserRating(toReturn.getInitiator().getId()));
         return toReturn;
     }
 
@@ -202,6 +213,8 @@ public class EventServiceImpl implements EventServiceFull {
         }
         EventFullDto toReturn = em.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
+        toReturn.setAvgInitiatorRating(ratingRepository.getAVGUserRating(toReturn.getInitiator().getId()));
+        toReturn.setEventRating(ratingRepository.getEventRating(toReturn.getId()));
         return toReturn;
     }
 
@@ -211,6 +224,7 @@ public class EventServiceImpl implements EventServiceFull {
         eventRepository.addView(eventId);
         EventFullDto toReturn = em.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
+        toReturn.setEventRating(ratingRepository.getEventRating(toReturn.getId()));
         return toReturn;
     }
 
@@ -228,6 +242,8 @@ public class EventServiceImpl implements EventServiceFull {
         List<Event> toReturn = customEventRepository.getAllAdmin(userList, states, categoryList, rangeStart, rangeEnd, from, size);
         return toReturn.stream().map(em::toEventFullDto)
                 .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
+                .peek(element -> element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId())))
+                .peek(element -> element.setEventRating(ratingRepository.getEventRating(element.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -238,8 +254,40 @@ public class EventServiceImpl implements EventServiceFull {
         List<Event> toReturn = customEventRepository.getAllUser(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
         return toReturn.stream().map(em::toEventFullDto)
                 .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
+                .peek(element -> element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId())))
+                .peek(element -> element.setEventRating(ratingRepository.getEventRating(element.getId())))
                 .collect(Collectors.toList());
+    }
 
+    @Override
+    public RatingDto createRating(int userId, int eventId, NewRatingDto ratingDto) {
+        UserDto user = userService.getUserById(userId);
+        Event event = eventRepository.findById(eventId).orElseThrow(NotFound::new);
+        if (event.getEventDate().isAfter(LocalDateTime.now())) {
+            throw new IncorrectParameters("Нельзя оценить событие, которое ещё не прошло");
+        }
+        Optional<ParticipationRequest> request = requestService.getRequestByEventAndUser(eventId, userId);
+
+        if (request.isEmpty()) {
+            throw new NoAccess();
+        }
+        if (!(request.get().getStatus() == RequestState.CONFIRMED)) {
+            throw new NoAccess();
+        }
+        ratingRepository.findByEventIdAndUserId(eventId, userId)
+                .ifPresent(element -> {
+                    throw new IncorrectParameters("Пользователь уже оценивал событие");
+                });
+        Rating rating = rm.fromNewRatingDto(ratingDto);
+        rating.setUser(um.fromUserDto(user));
+        rating.setEvent(event);
+        return rm.toRatingDto(ratingRepository.save(rating));
+    }
+
+    @Override
+    public List<RatingDto> getAllRatingToEvent(int eventId, int from, int size) {
+        return ratingRepository.findAllByEventId(eventId, PageRequest.of(from / size, size)).stream()
+                .map(rm::toRatingDto).collect(Collectors.toList());
     }
 
 }

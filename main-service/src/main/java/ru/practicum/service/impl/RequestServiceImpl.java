@@ -158,4 +158,10 @@ public class RequestServiceImpl implements RequestServiceFull {
     public int countEventConfirmedRequests(int eventId) {
         return requestRepository.countAllByEventIdAndStatus(eventId, RequestState.CONFIRMED);
     }
+
+    @Override
+    public Optional<ParticipationRequest> getRequestByEventAndUser(int eventId, int userId) {
+         requestRepository.findByEventIdAndRequesterId(eventId, userId).ifPresent(rm::toParticipationRequestDto);
+         return Optional.empty();
+    }
 }

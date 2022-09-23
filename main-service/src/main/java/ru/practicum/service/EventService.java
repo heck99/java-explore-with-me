@@ -31,4 +31,8 @@ public interface EventService {
 
     List<EventFullDto> getAllUser(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart,
                                   LocalDateTime rangeEnd, Boolean onlyAvailable, SortType sort, int from, int size);
+
+    RatingDto createRating(int userId, int eventId, NewRatingDto ratingDto);
+
+    List<RatingDto> getAllRatingToEvent(int eventId, int from, int size);
 }

@@ -2,10 +2,7 @@ package ru.practicum.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.dto.EventFullDto;
-import ru.practicum.dto.EventShortDto;
-import ru.practicum.dto.NewEventDto;
-import ru.practicum.dto.UpdateEventRequest;
+import ru.practicum.dto.*;
 import ru.practicum.service.EventService;
 
 import javax.validation.Valid;
@@ -43,5 +40,11 @@ public class EventPrivateController {
     @PatchMapping("/{eventId}")
     public EventFullDto cancelEvent(@PathVariable Integer userId, @PathVariable Integer eventId) {
         return eventService.cancelEvent(eventId, userId);
+    }
+
+    @PostMapping("/{eventId}/ratings")
+    public RatingDto createRating(@PathVariable Integer userId, @PathVariable Integer eventId,
+                                  @Valid @RequestBody NewRatingDto rating) {
+        return eventService.createRating(userId, eventId, rating);
     }
 }

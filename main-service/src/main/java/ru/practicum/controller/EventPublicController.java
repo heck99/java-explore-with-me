@@ -5,6 +5,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.SortType;
 import ru.practicum.dto.EventFullDto;
+import ru.practicum.dto.RatingDto;
 import ru.practicum.service.EventService;
 
 import java.time.LocalDateTime;
@@ -35,5 +36,12 @@ public class EventPublicController {
                                                  @RequestParam(required = false, name = "rangeStart") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
                                                  @RequestParam(required = false, name = "rangeEnd") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd) {
         return eventService.getAllUser(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+    }
+
+    @GetMapping("/{eventId}/ratings")
+    public List<RatingDto> getRatingForEvent(@RequestParam(name = "from", defaultValue = "0") int from,
+                                             @RequestParam(name = "size", defaultValue = "10") int size,
+                                             @PathVariable int eventId) {
+        return eventService.getAllRatingToEvent(eventId, from, size);
     }
 }

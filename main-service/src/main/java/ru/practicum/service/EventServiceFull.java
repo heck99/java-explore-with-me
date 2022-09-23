@@ -4,4 +4,6 @@ import ru.practicum.dto.EventFullDto;
 
 public interface EventServiceFull extends EventService {
     EventFullDto getEventById(int eventId);
+
+
 }
