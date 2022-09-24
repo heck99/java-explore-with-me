@@ -73,7 +73,7 @@ public class EventServiceImpl implements EventServiceFull {
             throw new NoAccess(String.format("пользователь с id = %d не может редактировать событие с id = %d", userId, eventDto.getEventId()));
         }
 
-        if (event.getState() != State.PUBLISHED) {
+        if (event.getState() == State.PUBLISHED) {
             throw new NoAccess("Нельзя изменять опубликованное событие");
         }
         if (eventDto.getAnnotation() != null) {
