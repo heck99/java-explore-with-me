@@ -3,7 +3,7 @@ package ru.practicum.repository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Component;
-import ru.practicum.SortType;
+import ru.practicum.dto.SortType;
 import ru.practicum.model.*;
 
 import javax.persistence.EntityManager;

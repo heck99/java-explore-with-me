@@ -14,12 +14,10 @@ public class RequestPrivateController {
 
     private final RequestService requestService;
 
-
     @GetMapping
     public List<ParticipationRequestDto> getUserRequests(@PathVariable int userId) {
         return requestService.getAllByRequester(userId);
     }
-
 
     @PostMapping
     public ParticipationRequestDto createRequest(@PathVariable int userId, @RequestParam int eventId) {
@@ -31,4 +29,5 @@ public class RequestPrivateController {
         return requestService.cancelRequest(userId, requestId);
 
     }
+
 }

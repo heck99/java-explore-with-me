@@ -1,6 +1,6 @@
 package ru.practicum.service;
 
-import ru.practicum.SortType;
+import ru.practicum.dto.SortType;
 import ru.practicum.dto.*;
 import ru.practicum.model.State;
 

@@ -20,7 +20,6 @@ public class CompilationAdminController {
         return compilationService.createCompilation(compilationDto);
     }
 
-
     @DeleteMapping("/{compId}/events/{eventId}")
     public void deleteEventFromCompilation(@PathVariable int compId, @PathVariable int eventId) {
         compilationService.deleteEventFromCompilation(eventId, compId);

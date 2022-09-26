@@ -3,7 +3,7 @@ package ru.practicum.controller;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.SortType;
+import ru.practicum.dto.SortType;
 import ru.practicum.client.Client;
 import ru.practicum.dto.EventFullDto;
 import ru.practicum.dto.NewStatisticDto;
@@ -22,7 +22,6 @@ public class EventPublicController {
 
     private final EventService eventService;
     private final Client client;
-
 
     @GetMapping("/{eventId}")
     public EventFullDto getPublishedEvents(@PathVariable int eventId, HttpServletRequest request) {

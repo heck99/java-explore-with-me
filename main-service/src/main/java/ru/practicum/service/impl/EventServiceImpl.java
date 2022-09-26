@@ -3,7 +3,7 @@ package ru.practicum.service.impl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import ru.practicum.SortType;
+import ru.practicum.dto.SortType;
 import ru.practicum.dto.*;
 import ru.practicum.exception.IncorrectParameters;
 import ru.practicum.exception.NoAccess;
