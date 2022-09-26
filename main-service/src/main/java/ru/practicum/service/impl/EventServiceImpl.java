@@ -3,7 +3,7 @@ package ru.practicum.service.impl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import ru.practicum.SortType;
+import ru.practicum.dto.SortType;
 import ru.practicum.dto.*;
 import ru.practicum.exception.IncorrectParameters;
 import ru.practicum.exception.NoAccess;
@@ -81,7 +81,7 @@ public class EventServiceImpl implements EventServiceFull {
             throw new NoAccess(String.format("пользователь с id = %d не может редактировать событие с id = %d", userId, eventDto.getEventId()));
         }
 
-        if (event.getState() != State.PUBLISHED) {
+        if (event.getState() == State.PUBLISHED) {
             throw new NoAccess("Нельзя изменять опубликованное событие");
         }
         if (eventDto.getAnnotation() != null) {
