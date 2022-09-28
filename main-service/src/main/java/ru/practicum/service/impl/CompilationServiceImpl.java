@@ -33,18 +33,18 @@ public class CompilationServiceImpl implements CompilationService {
 
     private final EventServiceFull eventService;
 
-    private final EventMapper em = new EventMapper();
+    private final EventMapper eventMapper = new EventMapper();
 
-    private final CompilationMapper cm = new CompilationMapper();
+    private final CompilationMapper compilationMapper = new CompilationMapper();
 
     @Override
     public CompilationDto createCompilation(NewCompilationDto compilationDto) {
         Set<Event> events = compilationDto.getEvents().stream()
-                .map(element -> em.fromEventFullDto(eventService.getEventById(element))).collect(Collectors.toSet());
+                .map(element -> eventMapper.fromEventFullDto(eventService.getEventById(element))).collect(Collectors.toSet());
 
 
         Compilation compilation = new Compilation(null, compilationDto.getPinned(), compilationDto.getTitle(), events);
-        return cm.toCompilationDto(compilationRepository.save(compilation));
+        return compilationMapper.toCompilationDto(compilationRepository.save(compilation));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public void addEventToCompilation(int eventId, int compId) {
-        EventCompilation eventCompilation = new EventCompilation(null, em.fromEventFullDto(eventService.getEventById(eventId)),
+        EventCompilation eventCompilation = new EventCompilation(null, eventMapper.fromEventFullDto(eventService.getEventById(eventId)),
                 compilationRepository.findById(compId)
                         .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId))));
         eventCompilationRepository.save(eventCompilation);
@@ -93,7 +93,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto getCompilationById(int compId) {
-        return cm.toCompilationDto(compilationRepository.findById(compId)
+        return compilationMapper.toCompilationDto(compilationRepository.findById(compId)
                 .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId))));
     }
 
@@ -101,10 +101,10 @@ public class CompilationServiceImpl implements CompilationService {
     public List<CompilationDto> getAllCompilations(Boolean pinned, int size, int from) {
         Pageable page = PageRequest.of(from / size, size);
         if (pinned == null) {
-            return compilationRepository.findAll(page).stream().map(cm::toCompilationDto)
+            return compilationRepository.findAll(page).stream().map(compilationMapper::toCompilationDto)
                     .collect(Collectors.toList());
         }
         Example<Compilation> example = Example.of(new Compilation(null, pinned, null, null));
-        return compilationRepository.findAll(example, page).stream().map(cm::toCompilationDto).collect(Collectors.toList());
+        return compilationRepository.findAll(example, page).stream().map(compilationMapper::toCompilationDto).collect(Collectors.toList());
     }
 }

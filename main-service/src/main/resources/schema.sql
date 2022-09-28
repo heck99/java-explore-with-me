@@ -1,14 +1,14 @@
 CREATE TABLE IF NOT EXISTS categories
 (
-    category_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
-    name        varchar NOT NULL UNIQUE,
+    category_id integer     NOT NULL GENERATED ALWAYS AS IDENTITY,
+    name        varchar(20) NOT NULL UNIQUE,
     PRIMARY KEY (category_id)
 );
 CREATE TABLE IF NOT EXISTS users
 (
-    user_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
-    name    varchar NOT NULL,
-    email   varchar NOT NULL,
+    user_id integer     NOT NULL GENERATED ALWAYS AS IDENTITY,
+    name    varchar(20) NOT NULL,
+    email   varchar(50) NOT NULL UNIQUE,
     PRIMARY KEY (user_id)
 );
 
