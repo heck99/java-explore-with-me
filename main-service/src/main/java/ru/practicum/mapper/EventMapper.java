@@ -21,11 +21,6 @@ public class EventMapper {
                 .views(0)
                 .build();
 
-    public Event fromAdminUpdateEventRequest(AdminUpdateEventRequest dto) {
-
-        return new Event(null, dto.getAnnotation(), new Category(dto.getCategory(), null), null, dto.getDescription(),
-                dto.getEventDate(), null, dto.getLocation().getLat(), dto.getLocation().getLon(), dto.getPaid(),
-                dto.getParticipantLimit(), null, dto.getRequestModeration(), null, dto.getTitle(), 0);
     }
 
     public Event fromEventFullDto(EventFullDto dto) {
