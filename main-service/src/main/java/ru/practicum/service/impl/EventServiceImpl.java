@@ -42,7 +42,7 @@ public class EventServiceImpl implements EventServiceFull {
 
     private final CustomEventRepository customEventRepository;
 
-    private final RatingMapper rm = new RatingMapper();
+    private final RatingMapper ratingMapper = new RatingMapper();
 
     private final RatingRepository ratingRepository;
 
@@ -292,16 +292,16 @@ public class EventServiceImpl implements EventServiceFull {
                 .ifPresent(element -> {
                     throw new IncorrectParameters("Пользователь уже оценивал событие");
                 });
-        Rating rating = rm.fromNewRatingDto(ratingDto);
-        rating.setUser(um.fromUserDto(user));
+        Rating rating = ratingMapper.fromNewRatingDto(ratingDto);
+        rating.setUser(userMapper.fromUserDto(user));
         rating.setEvent(event);
-        return rm.toRatingDto(ratingRepository.save(rating));
+        return ratingMapper.toRatingDto(ratingRepository.save(rating));
     }
 
     @Override
     public List<RatingDto> getAllRatingToEvent(int eventId, int from, int size) {
         return ratingRepository.findAllByEventId(eventId, PageRequest.of(from / size, size)).stream()
-                .map(rm::toRatingDto).collect(Collectors.toList());
+                .map(ratingMapper::toRatingDto).collect(Collectors.toList());
     }
 
     @Override
@@ -324,7 +324,7 @@ public class EventServiceImpl implements EventServiceFull {
         if (ratingDto.getMark() != null) {
             rating.setMark(ratingDto.getMark());
         }
-        return rm.toRatingDto(ratingRepository.save(rating));
+        return ratingMapper.toRatingDto(ratingRepository.save(rating));
     }
 
 }
