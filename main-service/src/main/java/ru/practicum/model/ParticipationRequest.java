@@ -22,15 +22,15 @@ public class ParticipationRequest {
 
     @ManyToOne()
     @JoinColumn(name = "event_id", referencedColumnName = "event_id")
-    Event event;
+    private Event event;
 
     @ManyToOne()
     @JoinColumn(name = "requester_id", referencedColumnName = "user_id")
     private User requester;
 
     @Enumerated(EnumType.STRING)
-    RequestState status;
+    private RequestState status;
 
     @Column(name = "created")
-    LocalDateTime created;
+    private LocalDateTime created;
 }

@@ -1,9 +1,6 @@
 package ru.practicum.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -13,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "events")
 public class Event {
 
@@ -67,5 +65,5 @@ public class Event {
     private String title;
 
     @Column(name = "views")
-    Integer views;
+    private Integer views;
 }

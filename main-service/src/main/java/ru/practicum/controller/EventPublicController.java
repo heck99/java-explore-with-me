@@ -32,7 +32,7 @@ public class EventPublicController {
         return eventService.getPublishedEvent(eventId);
     }
 
-    @GetMapping("")
+    @GetMapping()
     public List<EventFullDto> getPublishedEvents(@RequestParam(name = "from", defaultValue = "0") int from,
                                                  @RequestParam(name = "size", defaultValue = "10") int size,
                                                  @RequestParam(required = false) String text,

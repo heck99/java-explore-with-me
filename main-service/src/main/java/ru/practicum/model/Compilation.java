@@ -1,9 +1,6 @@
 package ru.practicum.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -13,6 +10,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "compilations")
 public class Compilation {
 
@@ -22,14 +20,14 @@ public class Compilation {
     private Integer id;
 
     @Column(name = "pinned")
-    Boolean pinned;
+    private Boolean pinned;
 
     @Column(name = "title")
-    String title;
+    private String title;
 
     @ManyToMany
     @JoinTable(name = "compilations_events",
     joinColumns = @JoinColumn(name = "compilation_id"),
     inverseJoinColumns = @JoinColumn(name = "event_id"))
-    Set<Event> events;
+    private Set<Event> events;
 }

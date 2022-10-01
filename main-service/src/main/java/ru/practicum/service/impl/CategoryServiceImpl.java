@@ -18,13 +18,11 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final CategoryMapper cm = new CategoryMapper();
-
-    //TODO:добавить обработку исключения уникальности https://www.baeldung.com/spring-dataIntegrityviolationexception
+    private final CategoryMapper categoryMapper = new CategoryMapper();
 
     @Override
     public CategoryDto createCategory(CategoryDto category) {
-        return cm.toCategoryDto(categoryRepository.save(cm.fromCategoryDto(category)));
+        return categoryMapper.toCategoryDto(categoryRepository.save(categoryMapper.fromCategoryDto(category)));
     }
 
     @Override
@@ -34,7 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (category.getName() != null) {
             category.setName(categorydto.getName());
         }
-        return cm.toCategoryDto(categoryRepository.save(category));
+        return categoryMapper.toCategoryDto(categoryRepository.save(category));
     }
 
     @Override
@@ -45,13 +43,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto getCategoryById(int categoryId) {
-        return cm.toCategoryDto(categoryRepository.findById(categoryId)
+        return categoryMapper.toCategoryDto(categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFound(String.format("Категория с id = %d не найдена", categoryId))));
     }
 
     @Override
     public List<CategoryDto> getAllCategories(int from, int size) {
-        return categoryRepository.findAll(PageRequest.of(from / size, size)).stream().map(cm::toCategoryDto)
+        return categoryRepository.findAll(PageRequest.of(from / size, size)).stream().map(categoryMapper::toCategoryDto)
                 .collect(Collectors.toList());
     }
 }

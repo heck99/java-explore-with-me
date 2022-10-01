@@ -19,20 +19,20 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserServiceFull {
 
     private final UserRepository userRepository;
-    private final UserMapper um = new UserMapper();
+    private final UserMapper userMapper = new UserMapper();
 
 
     @Override
     public UserDto createUser(UserDto user) {
-        return um.toUserDto(userRepository.save(um.fromUserDto(user)));
+        return userMapper.toUserDto(userRepository.save(userMapper.fromUserDto(user)));
     }
 
     @Override
     public List<UserDto> getUsers(int from, int size, List<Integer> ids) {
         if (ids != null && !ids.isEmpty()) {
-            return userRepository.findByIdIn(ids).stream().map(um::toUserDto).collect(Collectors.toList());
+            return userRepository.findByIdIn(ids).stream().map(userMapper::toUserDto).collect(Collectors.toList());
         } else {
-            return userRepository.findAll(PageRequest.of(from / size, size)).stream().map(um::toUserDto)
+            return userRepository.findAll(PageRequest.of(from / size, size)).stream().map(userMapper::toUserDto)
                     .collect(Collectors.toList());
         }
     }
@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserServiceFull {
     }
 
     public UserDto getUserById(int id) {
-        return um.toUserDto(userRepository.findById(id)
+        return userMapper.toUserDto(userRepository.findById(id)
                 .orElseThrow(() -> new NotFound(String.format("пользователь с idf = %d не найден", id))));
     }
 

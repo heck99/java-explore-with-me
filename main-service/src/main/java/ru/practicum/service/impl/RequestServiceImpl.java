@@ -32,9 +32,9 @@ public class RequestServiceImpl implements RequestServiceFull {
     private final UserServiceFull userService;
     private final EventServiceFull eventService;
 
-    private final UserMapper um = new UserMapper();
+    private final UserMapper userMapper = new UserMapper();
 
-    private final EventMapper em = new EventMapper();
+    private final EventMapper eventMapper = new EventMapper();
 
     @Override
     public ParticipationRequestDto createRequest(int userId, int eventId) {
@@ -61,10 +61,10 @@ public class RequestServiceImpl implements RequestServiceFull {
         UserDto user = userService.getUserById(userId);
         ParticipationRequest newRequest;
         if (event.getRequestModeration()) {
-            newRequest = new ParticipationRequest(null, em.fromEventFullDto(event), um.fromUserDto(user),
+            newRequest = new ParticipationRequest(null, eventMapper.fromEventFullDto(event), userMapper.fromUserDto(user),
                     RequestState.PENDING, LocalDateTime.now());
         } else {
-            newRequest = new ParticipationRequest(null, em.fromEventFullDto(event), um.fromUserDto(user),
+            newRequest = new ParticipationRequest(null, eventMapper.fromEventFullDto(event), userMapper.fromUserDto(user),
                     RequestState.CONFIRMED, LocalDateTime.now());
         }
         return rm.toParticipationRequestDto(requestRepository.save(newRequest));

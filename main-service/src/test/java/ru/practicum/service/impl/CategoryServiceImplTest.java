@@ -1,7 +1,6 @@
 package ru.practicum.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +17,8 @@ import ru.practicum.repository.CategoryRepository;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -44,14 +45,14 @@ class CategoryServiceImplTest {
     public void testGetCategoryByIdCorrect() {
         when(categoryRepository.findById(any())).thenReturn(Optional.of(category1));
         CategoryDto dto = service.getCategoryById(1);
-        Assertions.assertEquals(1, dto.getId());
+        assertEquals(1, dto.getId());
         verify(categoryRepository, times(1)).findById(any());
     }
 
     @Test
     public void testGetCategoryByIdNotFound() {
         when(categoryRepository.findById(any())).thenReturn(Optional.empty());
-        Assertions.assertThrows(NotFound.class, () -> service.getCategoryById(1));
+        assertThrows(NotFound.class, () -> service.getCategoryById(1));
         verify(categoryRepository, times(1)).findById(any());
     }
 
@@ -59,7 +60,7 @@ class CategoryServiceImplTest {
     public void createCategoryCorrect() {
         when(categoryRepository.save(any())).thenReturn(category1);
         CategoryDto categoryDto = service.createCategory(newCategory);
-        Assertions.assertEquals(categoryDto.getId(), 1);
+        assertEquals(categoryDto.getId(), 1);
         verify(categoryRepository, times(1)).save(any());
     }
 
@@ -70,8 +71,8 @@ class CategoryServiceImplTest {
         when(categoryRepository.save(any())).thenReturn(updateCategory);
         when(categoryRepository.findById(any())).thenReturn(Optional.of(category1));
         CategoryDto categoryDto = service.updateCategory(updateCategoryDto);
-        Assertions.assertEquals(categoryDto.getId(), 1);
-        Assertions.assertEquals(categoryDto.getName(), "new category1");
+        assertEquals(categoryDto.getId(), 1);
+        assertEquals(categoryDto.getName(), "new category1");
         verify(categoryRepository, times(1)).save(any());
         verify(categoryRepository, times(1)).findById(any());
     }
@@ -83,8 +84,8 @@ class CategoryServiceImplTest {
         when(categoryRepository.save(any())).thenReturn(updateCategory);
         when(categoryRepository.findById(any())).thenReturn(Optional.of(category1));
         CategoryDto categoryDto = service.updateCategory(updateCategoryDto);
-        Assertions.assertEquals(categoryDto.getId(), 1);
-        Assertions.assertEquals(categoryDto.getName(), "category1");
+        assertEquals(categoryDto.getId(), 1);
+        assertEquals(categoryDto.getName(), "category1");
         verify(categoryRepository, times(1)).save(any());
         verify(categoryRepository, times(1)).findById(any());
     }
@@ -93,7 +94,7 @@ class CategoryServiceImplTest {
     public void updateCategoryNotFound() {
         CategoryDto updateCategoryDto = new CategoryDto(1, "new category1");
         when(categoryRepository.findById(any())).thenThrow(NotFound.class);
-        Assertions.assertThrows(NotFound.class, () -> service.updateCategory(updateCategoryDto));
+        assertThrows(NotFound.class, () -> service.updateCategory(updateCategoryDto));
         verify(categoryRepository, times(1)).findById(any());
     }
 
@@ -108,7 +109,7 @@ class CategoryServiceImplTest {
     @Test
     public void testDeleteCategoryNotFound() {
         when(categoryRepository.findById(any())).thenReturn(Optional.empty());
-        Assertions.assertThrows(NotFound.class, () -> service.deleteCategory(1));
+        assertThrows(NotFound.class, () -> service.deleteCategory(1));
         verify(categoryRepository, times(1)).findById(any());
     }
 
@@ -116,9 +117,9 @@ class CategoryServiceImplTest {
     public void testGetAllCategory() {
         when(categoryRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(category1, category2, category3)));
         List<CategoryDto> list = service.getAllCategories(0, 10);
-        Assertions.assertEquals(list.get(0).getId(), 1);
-        Assertions.assertEquals(list.get(1).getId(), 2);
-        Assertions.assertEquals(list.get(2).getId(), 3);
+        assertEquals(list.get(0).getId(), 1);
+        assertEquals(list.get(1).getId(), 2);
+        assertEquals(list.get(2).getId(), 3);
         verify(categoryRepository, times(1)).findAll(any(Pageable.class));
     }
 

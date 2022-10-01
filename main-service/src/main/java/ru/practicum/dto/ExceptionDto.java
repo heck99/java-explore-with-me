@@ -14,10 +14,10 @@ import java.util.List;
 @Getter
 @Setter
 public class ExceptionDto {
-    List<String> errors;
-    String message;
-    String reason;
-    String status;
+    private List<String> errors;
+    private String message;
+    private String reason;
+    private String status;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime timestamp;
+    private LocalDateTime timestamp;
 }

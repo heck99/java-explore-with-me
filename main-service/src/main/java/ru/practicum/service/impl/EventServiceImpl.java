@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventServiceFull {
 
     private final EventRepository eventRepository;
-    private final EventMapper em = new EventMapper();
-    private final UserMapper um = new UserMapper();
-    private final CategoryMapper cm = new CategoryMapper();
+    private final EventMapper eventMapper = new EventMapper();
+    private final UserMapper userMapper = new UserMapper();
+    private final CategoryMapper categoryMapper = new CategoryMapper();
     private final UserServiceFull userService;
     private final CategoryService categoryService;
 
@@ -59,17 +59,18 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public EventFullDto createEvent(NewEventDto newEventDto, int userId) {
-        Event newEvent = em.fromNewEventDto(newEventDto);
-        newEvent.setInitiator(um.fromUserDto(userService.getUserById(userId)));
+        Event newEvent = eventMapper.fromNewEventDto(newEventDto);
+        newEvent.setInitiator(userMapper.fromUserDto(userService.getUserById(userId)));
         newEvent.setCreated(LocalDateTime.now());
         LocalDateTime eventDate = newEvent.getEventDate();
-        newEvent.setCategory(cm.fromCategoryDto(categoryService.getCategoryById(newEvent.getCategory().getId())));
+        newEvent.setCategory(categoryMapper.fromCategoryDto(categoryService.getCategoryById(newEvent.getCategory().getId())));
         newEvent.setViews(0);
-        if (eventDate.minusHours(2).isBefore(LocalDateTime.now())) {
+        int minimumHoursToCreateEvent = 2;
+        if (eventDate.minusHours(minimumHoursToCreateEvent).isBefore(LocalDateTime.now())) {
             throw new IncorrectParameters("дата и время события не может быть раньше, чем через два часа от текущего момента");
         }
         newEvent.setState(State.PENDING);
-        return em.toEventFullDto(eventRepository.save(newEvent));
+        return eventMapper.toEventFullDto(eventRepository.save(newEvent));
     }
 
     @Override
@@ -88,7 +89,7 @@ public class EventServiceImpl implements EventServiceFull {
             event.setAnnotation(eventDto.getAnnotation());
         }
         if (eventDto.getCategory() != null) {
-            event.setCategory(cm.fromCategoryDto(categoryService.getCategoryById(eventDto.getCategory())));
+            event.setCategory(categoryMapper.fromCategoryDto(categoryService.getCategoryById(eventDto.getCategory())));
         }
         if (eventDto.getDescription() != null) {
             event.setDescription(eventDto.getDescription());
@@ -106,7 +107,7 @@ public class EventServiceImpl implements EventServiceFull {
             event.setTitle(eventDto.getTitle());
         }
         event.setState(State.PENDING);
-        return em.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -119,7 +120,7 @@ public class EventServiceImpl implements EventServiceFull {
         }
 
         if (eventDto.getCategory() != null) {
-            event.setCategory(cm.fromCategoryDto(categoryService.getCategoryById(eventDto.getCategory())));
+            event.setCategory(categoryMapper.fromCategoryDto(categoryService.getCategoryById(eventDto.getCategory())));
         }
 
         if (eventDto.getDescription() != null) {
@@ -151,13 +152,13 @@ public class EventServiceImpl implements EventServiceFull {
             event.setTitle(eventDto.getTitle());
         }
 
-        return em.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
     public List<EventShortDto> getAllUsersEvents(int userId, int from, int size) {
         return eventRepository.findAllByInitiatorId(userId, PageRequest.of(from / size, size))
-                .stream().map(em::toEventShortDto)
+                .stream().map(eventMapper::toEventShortDto)
                 .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
                 .peek(element -> element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId())))
                 .peek(element -> element.setEventRating(ratingRepository.getEventRating(element.getId())))
@@ -171,7 +172,7 @@ public class EventServiceImpl implements EventServiceFull {
         if (event.getInitiator().getId() != userId) {
             throw new NoAccess(String.format("пользователь с id = %d не имеет доступ к событию с id = %d", userId, eventId));
         }
-        EventFullDto toReturn = em.toEventFullDto(event);
+        EventFullDto toReturn = eventMapper.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
         toReturn.setAvgInitiatorRating(ratingRepository.getAVGUserRating(toReturn.getInitiator().getId()));
         return toReturn;
@@ -185,14 +186,15 @@ public class EventServiceImpl implements EventServiceFull {
             throw new NoAccess("Нельзя отменить событие, которое не находится в состоянии ожидания подтверждения");
         }
         event.setState(State.CANCELED);
-        return em.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
     public EventFullDto publicEvent(int eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
-        if (event.getEventDate().minusHours(1).isBefore(LocalDateTime.now())) {
+        int minimumHoursToCPublishEvent = 1;
+        if (event.getEventDate().minusHours(minimumHoursToCPublishEvent).isBefore(LocalDateTime.now())) {
             throw new NoAccess("Нельзя публиковать событие , до начала которого осталось менее часа");
         }
 
@@ -200,7 +202,7 @@ public class EventServiceImpl implements EventServiceFull {
             throw new NoAccess("Нельзя публиковать событие, которое не находится в состоянии ожидания подтверждения");
         }
         event.setState(State.PUBLISHED);
-        return em.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -211,7 +213,7 @@ public class EventServiceImpl implements EventServiceFull {
             throw new NoAccess("Нельзя отклонить событие, которое не находится в состоянии ожидания подтверждения");
         }
         event.setState(State.CANCELED);
-        return em.toEventFullDto(eventRepository.save(event));
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -221,7 +223,7 @@ public class EventServiceImpl implements EventServiceFull {
         if (event.getState() != State.PUBLISHED) {
             throw new NotFound(String.format("Событие с id = %d не опубликовано", eventId));
         }
-        EventFullDto toReturn = em.toEventFullDto(event);
+        EventFullDto toReturn = eventMapper.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
         toReturn.setAvgInitiatorRating(ratingRepository.getAVGUserRating(toReturn.getInitiator().getId()));
         toReturn.setEventRating(ratingRepository.getEventRating(toReturn.getId()));
@@ -233,7 +235,7 @@ public class EventServiceImpl implements EventServiceFull {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFound(String.format("событие с id = %d не найден", eventId)));
         eventRepository.addView(eventId);
-        EventFullDto toReturn = em.toEventFullDto(event);
+        EventFullDto toReturn = eventMapper.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
         toReturn.setEventRating(ratingRepository.getEventRating(toReturn.getId()));
         return toReturn;
@@ -244,14 +246,14 @@ public class EventServiceImpl implements EventServiceFull {
                                           LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
         List<User> userList = null;
         if (users != null) {
-            userList = users.stream().map(element -> um.fromUserDto(userService.getUserById(element))).collect(Collectors.toList());
+            userList = users.stream().map(element -> userMapper.fromUserDto(userService.getUserById(element))).collect(Collectors.toList());
         }
         List<Category> categoryList = null;
         if (categories != null) {
-            categoryList = categories.stream().map(element -> cm.fromCategoryDto(categoryService.getCategoryById(element))).collect(Collectors.toList());
+            categoryList = categories.stream().map(element -> categoryMapper.fromCategoryDto(categoryService.getCategoryById(element))).collect(Collectors.toList());
         }
         List<Event> toReturn = customEventRepository.getAllAdmin(userList, states, categoryList, rangeStart, rangeEnd, from, size);
-        return toReturn.stream().map(em::toEventFullDto)
+        return toReturn.stream().map(eventMapper::toEventFullDto)
                 .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
                 .peek(element -> element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId())))
                 .peek(element -> element.setEventRating(ratingRepository.getEventRating(element.getId())))
@@ -263,7 +265,7 @@ public class EventServiceImpl implements EventServiceFull {
                                          LocalDateTime rangeEnd, Boolean onlyAvailable, SortType sort, int from, int size) {
 
         List<Event> toReturn = customEventRepository.getAllUser(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
-        return toReturn.stream().map(em::toEventFullDto)
+        return toReturn.stream().map(eventMapper::toEventFullDto)
                 .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
                 .peek(element -> element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId())))
                 .peek(element -> element.setEventRating(ratingRepository.getEventRating(element.getId())))
