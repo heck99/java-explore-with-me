@@ -1,11 +1,11 @@
 package ru.practicum.service;
 
-import ru.practicum.model.ParticipationRequest;
+import ru.practicum.dto.ParticipationRequestDto;
 
 import java.util.Optional;
 
 public interface RequestServiceFull extends RequestService {
     int countEventConfirmedRequests(int eventId);
 
-    Optional<ParticipationRequest> getRequestByEventAndUser(int eventId, int userId);
+    Optional<ParticipationRequestDto> getRequestByEventAndUser(int eventId, int userId);
 }

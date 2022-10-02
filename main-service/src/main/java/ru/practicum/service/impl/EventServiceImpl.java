@@ -280,7 +280,7 @@ public class EventServiceImpl implements EventServiceFull {
         if (event.getEventDate().isAfter(LocalDateTime.now())) {
             throw new IncorrectParameters("Нельзя оценить событие, которое ещё не прошло");
         }
-        Optional<ParticipationRequest> request = requestService.getRequestByEventAndUser(eventId, userId);
+        Optional<ParticipationRequestDto> request = requestService.getRequestByEventAndUser(eventId, userId);
 
         if (request.isEmpty()) {
             throw new NoAccess("оценивать могут только пользователи, которые имеют подтверждённый запрос");
@@ -288,20 +288,20 @@ public class EventServiceImpl implements EventServiceFull {
         if (request.get().getStatus() != RequestState.CONFIRMED) {
             throw new NoAccess("Нельзя оценить событие, которое не подтверждено");
         }
-        ratingRepository.findByEventIdAndUserId(eventId, userId)
-                .ifPresent(element -> {
-                    throw new IncorrectParameters("Пользователь уже оценивал событие");
-                });
+        if (ratingRepository.findByEventIdAndUserId(eventId, userId).isPresent()) {
+            throw new IncorrectParameters("Пользователь уже оценивал событие");
+        }
         Rating rating = ratingMapper.fromNewRatingDto(ratingDto);
-        rating.setUser(userMapper.fromUserDto(user));
-        rating.setEvent(event);
+        rating.setUserId(user.getId());
+        rating.setEventId(event.getId());
         return ratingMapper.toRatingDto(ratingRepository.save(rating));
     }
 
     @Override
     public List<RatingDto> getAllRatingToEvent(int eventId, int from, int size) {
         return ratingRepository.findAllByEventId(eventId, PageRequest.of(from / size, size)).stream()
-                .map(ratingMapper::toRatingDto).collect(Collectors.toList());
+                .map(ratingMapper::toRatingDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -315,7 +315,7 @@ public class EventServiceImpl implements EventServiceFull {
     public RatingDto updateRating(int userId, int ratingId, NewRatingDto ratingDto) {
         Rating rating = ratingRepository.findById(ratingId)
                 .orElseThrow(() -> new NotFound(String.format("ретинг с id = %d не найден", ratingId)));
-        if (userId != rating.getUser().getId()) {
+        if (userId != rating.getUserId()) {
             throw new NoAccess("обновить рейтинг может только его создатель");
         }
         if (ratingDto.getDescription() != null) {

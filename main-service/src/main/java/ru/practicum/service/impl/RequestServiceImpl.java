@@ -28,7 +28,7 @@ public class RequestServiceImpl implements RequestServiceFull {
 
     private final ParticipationRequestRepository requestRepository;
 
-    private final ParticipationRequestMapper rm = new ParticipationRequestMapper();
+    private final ParticipationRequestMapper participationRequestMapper = new ParticipationRequestMapper();
     private final UserServiceFull userService;
     private final EventServiceFull eventService;
 
@@ -67,13 +67,13 @@ public class RequestServiceImpl implements RequestServiceFull {
             newRequest = new ParticipationRequest(null, eventMapper.fromEventFullDto(event), userMapper.fromUserDto(user),
                     RequestState.CONFIRMED, LocalDateTime.now());
         }
-        return rm.toParticipationRequestDto(requestRepository.save(newRequest));
+        return participationRequestMapper.toParticipationRequestDto(requestRepository.save(newRequest));
     }
 
     @Override
     public List<ParticipationRequestDto> getAllByRequester(int userId) {
         return requestRepository.findAllByRequesterId(userId).stream()
-                .map(rm::toParticipationRequestDto)
+                .map(participationRequestMapper::toParticipationRequestDto)
                 .collect(Collectors.toList());
     }
 
@@ -95,7 +95,7 @@ public class RequestServiceImpl implements RequestServiceFull {
             }
         }
         request.setStatus(RequestState.CANCELED);
-        return rm.toParticipationRequestDto(requestRepository.save(request));
+        return participationRequestMapper.toParticipationRequestDto(requestRepository.save(request));
     }
 
     @Override
@@ -123,7 +123,7 @@ public class RequestServiceImpl implements RequestServiceFull {
         if (count + 1 == request.getEvent().getParticipantLimit()) {
             requestRepository.cancelAllRequests(eventId);
         }
-        return rm.toParticipationRequestDto(request);
+        return participationRequestMapper.toParticipationRequestDto(request);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class RequestServiceImpl implements RequestServiceFull {
             throw new NoAccess("Нельзя отменить запрос, который не находится в статусе ожидания подтверждения");
         }
         request.setStatus(RequestState.REJECTED);
-        return rm.toParticipationRequestDto(requestRepository.save(request));
+        return participationRequestMapper.toParticipationRequestDto(requestRepository.save(request));
     }
 
     @Override
@@ -151,7 +151,7 @@ public class RequestServiceImpl implements RequestServiceFull {
         if (userId != event.getInitiator().getId()) {
             throw new NoAccess("Только организатор имеет доступ к этому событию");
         }
-        return requestRepository.findAllByEventId(eventId).stream().map(rm::toParticipationRequestDto).collect(Collectors.toList());
+        return requestRepository.findAllByEventId(eventId).stream().map(participationRequestMapper::toParticipationRequestDto).collect(Collectors.toList());
     }
 
     @Override
@@ -160,8 +160,8 @@ public class RequestServiceImpl implements RequestServiceFull {
     }
 
     @Override
-    public Optional<ParticipationRequest> getRequestByEventAndUser(int eventId, int userId) {
-         requestRepository.findByEventIdAndRequesterId(eventId, userId).ifPresent(rm::toParticipationRequestDto);
-         return Optional.empty();
+    public Optional<ParticipationRequestDto> getRequestByEventAndUser(int eventId, int userId) {
+        return requestRepository.findByEventIdAndRequesterId(eventId, userId)
+                .map(participationRequestMapper::toParticipationRequestDto);
     }
 }

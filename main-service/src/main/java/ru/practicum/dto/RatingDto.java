@@ -13,6 +13,5 @@ public class RatingDto {
     Integer id;
     String description;
     Integer mark;
-    UserShortDto user;
-    EventShortDto event;
+    Integer userId;
 }

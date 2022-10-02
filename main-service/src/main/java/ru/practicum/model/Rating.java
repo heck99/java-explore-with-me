@@ -25,12 +25,10 @@ public class Rating {
     @Column(name = "mark")
     private Integer mark;
 
-    @ManyToOne()
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
-    private User user;
+    @Column(name = "userId")
+    private Integer userId;
 
-    @ManyToOne()
-    @JoinColumn(name = "event_id", referencedColumnName = "event_id")
-    private Event event;
+    @Column(name = "event_id")
+    private Integer eventId;
 
 }

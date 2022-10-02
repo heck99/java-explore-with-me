@@ -13,12 +13,11 @@ import java.util.Optional;
 public interface RatingRepository extends JpaRepository<Rating, Integer> {
     Optional<Rating> findByEventIdAndUserId(int eventId, int userId);
 
-
-    @Query("SELECT (sum(r.mark) + 0.0) /count(r.mark) FROM Rating r WHERE r.event.initiator.id = :userId")
+    @Query("SELECT (sum(r.mark) + 0.0) /count(r.mark) FROM Rating r JOIN Event e ON r.eventId=e.id WHERE e.initiator.id = :userId")
     Double getAVGUserRating(int userId);
 
     List<Rating> findAllByEventId(int eventId, Pageable page);
 
-    @Query("SELECT (sum(r.mark) + 0.0) /count(r.mark) FROM Rating r WHERE r.event.id = :eventId")
+    @Query("SELECT (sum(r.mark) + 0.0) /count(r.mark) FROM Rating r WHERE r.eventId = :eventId")
     Double getEventRating(int eventId);
 }
