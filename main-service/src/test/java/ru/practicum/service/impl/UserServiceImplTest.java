@@ -11,7 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.dto.UserDto;
-import ru.practicum.exception.NotFound;
+import ru.practicum.exception.NotFoundException;
+import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.User;
 import ru.practicum.repository.UserRepository;
 
@@ -19,7 +20,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +33,8 @@ class UserServiceImplTest {
     @Mock
     UserRepository userRepository;
 
+    UserMapper userMapper;
+
     User user1 = new User(1, "user1", "user1@mail.com");
     User user2 = new User(2, "user2", "user2@mail.com");
     User user3 = new User(3, "user3", "user3@mail.com");
@@ -37,7 +42,7 @@ class UserServiceImplTest {
 
     @BeforeEach
     void init() {
-        service = new UserServiceImpl(userRepository);
+        service = new UserServiceImpl(userRepository, userMapper);
     }
 
     @Test
@@ -61,7 +66,7 @@ class UserServiceImplTest {
     @Test
     public void testDeleteUserNotFound() {
         when(userRepository.findById(any())).thenReturn(Optional.empty());
-        Assertions.assertThrows(NotFound.class, () -> service.deleteUser(1));
+        Assertions.assertThrows(NotFoundException.class, () -> service.deleteUser(1));
         verify(userRepository, times(1)).findById(any());
     }
 

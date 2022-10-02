@@ -1,7 +1,11 @@
 package ru.practicum.controller;
 
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.CompilationDto;
 import ru.practicum.service.CompilationService;
 
@@ -22,7 +26,7 @@ public class CompilationPublicController {
 
     @GetMapping("{compId}")
     public CompilationDto getAllCompilations(@PathVariable int compId) {
-        return compilationService.getCompilationById(compId);
+        return compilationService.getCompilationByIdOrThrow(compId);
     }
 
 }

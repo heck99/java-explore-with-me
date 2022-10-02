@@ -69,7 +69,7 @@ public class UserServiceIntegrationTest {
 
     @Test
     public void getUserByIdCorrect() {
-        UserDto user = service.getUserById(1);
+        UserDto user = service.getUserByIdOrThrow(1);
         assertEquals(user.getId(), 1);
         assertEquals(user.getName(), "user1");
     }

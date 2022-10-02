@@ -1,8 +1,20 @@
 package ru.practicum.controller;
 
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import ru.practicum.dto.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.dto.EventFullDto;
+import ru.practicum.dto.EventShortDto;
+import ru.practicum.dto.NewEventDto;
+import ru.practicum.dto.NewRatingDto;
+import ru.practicum.dto.RatingDto;
+import ru.practicum.dto.UpdateEventRequest;
 import ru.practicum.service.EventService;
 
 import javax.validation.Valid;

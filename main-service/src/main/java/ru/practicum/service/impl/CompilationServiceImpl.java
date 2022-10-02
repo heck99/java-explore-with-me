@@ -7,8 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.CompilationDto;
 import ru.practicum.dto.NewCompilationDto;
-import ru.practicum.exception.IncorrectParameters;
-import ru.practicum.exception.NotFound;
+import ru.practicum.exception.IncorrectParametersException;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.CompilationMapper;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.model.Compilation;
@@ -35,12 +35,13 @@ public class CompilationServiceImpl implements CompilationService {
 
     private final EventMapper eventMapper = new EventMapper();
 
-    private final CompilationMapper compilationMapper = new CompilationMapper();
+    private final CompilationMapper compilationMapper;
 
     @Override
     public CompilationDto createCompilation(NewCompilationDto compilationDto) {
         Set<Event> events = compilationDto.getEvents().stream()
-                .map(element -> eventMapper.fromEventFullDto(eventService.getEventById(element))).collect(Collectors.toSet());
+                .map(element -> eventMapper.fromEventFullDto(eventService.getEventByIdOrThrow(element)))
+                .collect(Collectors.toSet());
 
 
         Compilation compilation = new Compilation(null, compilationDto.getPinned(), compilationDto.getTitle(), events);
@@ -50,31 +51,31 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public void deleteCompilation(int compId) {
         compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId)));
+                .orElseThrow(() -> new NotFoundException(String.format("подборка с id = %d не найден", compId)));
         compilationRepository.deleteById(compId);
     }
 
     @Override
     public void deleteEventFromCompilation(int eventId, int compId) {
         EventCompilation eventCompilation = eventCompilationRepository.findByEventIdAndCompilationId(eventId, compId)
-                .orElseThrow(() -> new NotFound(String.format("В подборке с id = %d не найдено событие с id = %d", compId, eventId)));
+                .orElseThrow(() -> new NotFoundException(String.format("В подборке с id = %d не найдено событие с id = %d", compId, eventId)));
         eventCompilationRepository.deleteById(eventCompilation.getId());
     }
 
     @Override
     public void addEventToCompilation(int eventId, int compId) {
-        EventCompilation eventCompilation = new EventCompilation(null, eventMapper.fromEventFullDto(eventService.getEventById(eventId)),
+        EventCompilation eventCompilation = new EventCompilation(null, eventMapper.fromEventFullDto(eventService.getEventByIdOrThrow(eventId)),
                 compilationRepository.findById(compId)
-                        .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId))));
+                        .orElseThrow(() -> new NotFoundException(String.format("подборка с id = %d не найден", compId))));
         eventCompilationRepository.save(eventCompilation);
     }
 
     @Override
     public void unpinCompilation(int compId) {
         Compilation compilation = compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId)));
+                .orElseThrow(() -> new NotFoundException(String.format("подборка с id = %d не найден", compId)));
         if (!compilation.getPinned()) {
-            throw new IncorrectParameters("Подборка уже откреплена");
+            throw new IncorrectParametersException("Подборка уже откреплена");
         }
         compilation.setPinned(false);
         compilationRepository.save(compilation);
@@ -83,28 +84,31 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public void pinCompilation(int compId) {
         Compilation compilation = compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId)));
+                .orElseThrow(() -> new NotFoundException(String.format("подборка с id = %d не найден", compId)));
         if (compilation.getPinned()) {
-            throw new IncorrectParameters("Подборка уже закреплена");
+            throw new IncorrectParametersException("Подборка уже закреплена");
         }
         compilation.setPinned(true);
         compilationRepository.save(compilation);
     }
 
     @Override
-    public CompilationDto getCompilationById(int compId) {
+    public CompilationDto getCompilationByIdOrThrow(int compId) {
         return compilationMapper.toCompilationDto(compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFound(String.format("подборка с id = %d не найден", compId))));
+                .orElseThrow(() -> new NotFoundException(String.format("подборка с id = %d не найден", compId))));
     }
 
     @Override
     public List<CompilationDto> getAllCompilations(Boolean pinned, int size, int from) {
         Pageable page = PageRequest.of(from / size, size);
         if (pinned == null) {
-            return compilationRepository.findAll(page).stream().map(compilationMapper::toCompilationDto)
+            return compilationRepository.findAll(page).stream()
+                    .map(compilationMapper::toCompilationDto)
                     .collect(Collectors.toList());
         }
         Example<Compilation> example = Example.of(new Compilation(null, pinned, null, null));
-        return compilationRepository.findAll(example, page).stream().map(compilationMapper::toCompilationDto).collect(Collectors.toList());
+        return compilationRepository.findAll(example, page).stream()
+                .map(compilationMapper::toCompilationDto)
+                .collect(Collectors.toList());
     }
 }

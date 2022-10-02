@@ -1,13 +1,17 @@
 package ru.practicum.mapper;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import ru.practicum.dto.CompilationDto;
 import ru.practicum.model.Compilation;
 
 import java.util.stream.Collectors;
 
+@Component
+@RequiredArgsConstructor
 public class CompilationMapper {
+    EventMapper mapper;
     public CompilationDto toCompilationDto(Compilation compilation) {
-        EventMapper mapper = new EventMapper();
         return CompilationDto.builder()
                 .id(compilation.getId())
                 .pinned(compilation.getPinned())

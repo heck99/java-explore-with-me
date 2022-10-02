@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.CategoryDto;
-import ru.practicum.exception.NotFound;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.model.Category;
 import ru.practicum.service.CategoryService;
 
@@ -40,28 +40,28 @@ public class CategoryServiceIntegrationTest {
 
     @Test
     public void getByIdCorrect() {
-        CategoryDto categoryDto = service.getCategoryById(1);
+        CategoryDto categoryDto = service.getCategoryByIdOrThrow(1);
         assertEquals(categoryDto.getId(), 1);
         assertEquals(categoryDto.getName(), "category1");
     }
 
     @Test
     public void updateCategoryCorrect() {
-        CategoryDto categoryDto = service.getCategoryById(1);
+        CategoryDto categoryDto = service.getCategoryByIdOrThrow(1);
         assertEquals(categoryDto.getId(), 1);
         assertEquals(categoryDto.getName(), "category1");
 
         CategoryDto updateCategory = new CategoryDto(1, "new category name");
         service.updateCategory(updateCategory);
 
-        categoryDto = service.getCategoryById(1);
+        categoryDto = service.getCategoryByIdOrThrow(1);
         assertEquals(categoryDto.getId(), 1);
         assertEquals(categoryDto.getName(), "new category name");
     }
 
     @Test
     public void getByIdNotFound() {
-        assertThrows(NotFound.class, () -> service.getCategoryById(4));
+        assertThrows(NotFoundException.class, () -> service.getCategoryByIdOrThrow(4));
     }
 
     @Test
