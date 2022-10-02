@@ -10,7 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.dto.CategoryDto;
-import ru.practicum.exception.NotFound;
+import ru.practicum.exception.NotFoundException;
+import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.model.Category;
 import ru.practicum.repository.CategoryRepository;
 
@@ -20,7 +21,10 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @ExtendWith(MockitoExtension.class)
@@ -31,9 +35,11 @@ class CategoryServiceImplTest {
     @Mock
     CategoryRepository categoryRepository;
 
+    CategoryMapper categoryMapper;
+
     @BeforeEach
     void init() {
-        service = new CategoryServiceImpl(categoryRepository);
+        service = new CategoryServiceImpl(categoryRepository, categoryMapper);
     }
 
     Category category1 = new Category(1, "category1");
@@ -44,7 +50,7 @@ class CategoryServiceImplTest {
     @Test
     public void testGetCategoryByIdCorrect() {
         when(categoryRepository.findById(any())).thenReturn(Optional.of(category1));
-        CategoryDto dto = service.getCategoryById(1);
+        CategoryDto dto = service.getCategoryByIdOrThrow(1);
         assertEquals(1, dto.getId());
         verify(categoryRepository, times(1)).findById(any());
     }
@@ -52,7 +58,7 @@ class CategoryServiceImplTest {
     @Test
     public void testGetCategoryByIdNotFound() {
         when(categoryRepository.findById(any())).thenReturn(Optional.empty());
-        assertThrows(NotFound.class, () -> service.getCategoryById(1));
+        assertThrows(NotFoundException.class, () -> service.getCategoryByIdOrThrow(1));
         verify(categoryRepository, times(1)).findById(any());
     }
 
@@ -93,8 +99,8 @@ class CategoryServiceImplTest {
     @Test
     public void updateCategoryNotFound() {
         CategoryDto updateCategoryDto = new CategoryDto(1, "new category1");
-        when(categoryRepository.findById(any())).thenThrow(NotFound.class);
-        assertThrows(NotFound.class, () -> service.updateCategory(updateCategoryDto));
+        when(categoryRepository.findById(any())).thenThrow(NotFoundException.class);
+        assertThrows(NotFoundException.class, () -> service.updateCategory(updateCategoryDto));
         verify(categoryRepository, times(1)).findById(any());
     }
 
@@ -109,7 +115,7 @@ class CategoryServiceImplTest {
     @Test
     public void testDeleteCategoryNotFound() {
         when(categoryRepository.findById(any())).thenReturn(Optional.empty());
-        assertThrows(NotFound.class, () -> service.deleteCategory(1));
+        assertThrows(NotFoundException.class, () -> service.deleteCategory(1));
         verify(categoryRepository, times(1)).findById(any());
     }
 

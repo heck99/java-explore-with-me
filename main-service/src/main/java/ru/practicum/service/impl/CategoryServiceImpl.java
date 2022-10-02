@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.CategoryDto;
-import ru.practicum.exception.NotFound;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.model.Category;
 import ru.practicum.repository.CategoryRepository;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final CategoryMapper categoryMapper = new CategoryMapper();
+    private final CategoryMapper categoryMapper;
 
     @Override
     public CategoryDto createCategory(CategoryDto category) {
@@ -28,7 +28,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto updateCategory(CategoryDto categorydto) {
         Category category = categoryRepository.findById(categorydto.getId())
-                .orElseThrow(() -> new NotFound(String.format("Категория с id = %d не найдена", categorydto.getId())));
+                .orElseThrow(() -> new NotFoundException(String.format("Категория с id = %d не найдена", categorydto.getId())));
         if (category.getName() != null) {
             category.setName(categorydto.getName());
         }
@@ -37,19 +37,20 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(int categoryId) {
-        getCategoryById(categoryId);
+        getCategoryByIdOrThrow(categoryId);
         categoryRepository.deleteById(categoryId);
     }
 
     @Override
-    public CategoryDto getCategoryById(int categoryId) {
+    public CategoryDto getCategoryByIdOrThrow(int categoryId) {
         return categoryMapper.toCategoryDto(categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFound(String.format("Категория с id = %d не найдена", categoryId))));
+                .orElseThrow(() -> new NotFoundException(String.format("Категория с id = %d не найдена", categoryId))));
     }
 
     @Override
     public List<CategoryDto> getAllCategories(int from, int size) {
-        return categoryRepository.findAll(PageRequest.of(from / size, size)).stream().map(categoryMapper::toCategoryDto)
+        return categoryRepository.findAll(PageRequest.of(from / size, size)).stream()
+                .map(categoryMapper::toCategoryDto)
                 .collect(Collectors.toList());
     }
 }

@@ -1,10 +1,17 @@
 package ru.practicum.mapper;
 
-import ru.practicum.dto.*;
+import org.springframework.stereotype.Component;
+import ru.practicum.dto.CategoryDto;
+import ru.practicum.dto.EventFullDto;
+import ru.practicum.dto.EventShortDto;
+import ru.practicum.dto.Location;
+import ru.practicum.dto.NewEventDto;
+import ru.practicum.dto.UserShortDto;
 import ru.practicum.model.Category;
 import ru.practicum.model.Event;
 import ru.practicum.model.User;
 
+@Component
 public class EventMapper {
     public Event fromNewEventDto(NewEventDto dto) {
         return Event.builder()

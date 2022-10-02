@@ -19,7 +19,7 @@ public interface CompilationService {
 
     void pinCompilation(int compId);
 
-    CompilationDto getCompilationById(int compId);
+    CompilationDto getCompilationByIdOrThrow(int compId);
 
     List<CompilationDto> getAllCompilations(Boolean pinned, int size, int from);
 }

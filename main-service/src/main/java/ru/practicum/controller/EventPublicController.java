@@ -2,7 +2,11 @@ package ru.practicum.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.SortType;
 import ru.practicum.client.Client;
 import ru.practicum.dto.EventFullDto;
@@ -28,7 +32,7 @@ public class EventPublicController {
         client.post("/hit",
                 new NewStatisticDto("ewm", request.getRequestURI(), request.getRemoteAddr(),
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"))));
-        return eventService.getPublishedEvent(eventId);
+        return eventService.getPublishedEventOrThrow(eventId);
     }
 
     @GetMapping()
