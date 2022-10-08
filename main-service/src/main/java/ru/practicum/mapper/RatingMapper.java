@@ -1,9 +1,11 @@
 package ru.practicum.mapper;
 
+import org.springframework.stereotype.Component;
 import ru.practicum.dto.NewRatingDto;
 import ru.practicum.dto.RatingDto;
 import ru.practicum.model.Rating;
 
+@Component
 public class RatingMapper {
 
     public Rating fromNewRatingDto(NewRatingDto dto) {

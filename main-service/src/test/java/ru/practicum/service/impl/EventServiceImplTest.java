@@ -71,7 +71,7 @@ class EventServiceImplTest {
 
     @BeforeEach
     void init() {
-        eventService = new EventServiceImpl(repository, eventMapper, userMapper, categoryMapper, userService, categoryService, null, null);
+        eventService = new EventServiceImpl(repository, eventMapper, userMapper, categoryMapper, userService, categoryService, null, null, null, null);
     }
 
     @Test

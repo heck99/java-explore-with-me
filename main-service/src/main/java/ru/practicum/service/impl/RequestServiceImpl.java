@@ -166,6 +166,6 @@ public class RequestServiceImpl implements RequestServiceFull {
     @Override
     public Optional<ParticipationRequestDto> getRequestByEventAndUser(int eventId, int userId) {
         return requestRepository.findByEventIdAndRequesterId(eventId, userId)
-                .map(participationRequestMapper::toParticipationRequestDto);
+                .map(requestMapper::toParticipationRequestDto);
     }
 }

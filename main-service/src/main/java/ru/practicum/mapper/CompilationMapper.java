@@ -10,7 +10,8 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class CompilationMapper {
-    EventMapper mapper;
+    private final EventMapper mapper;
+
     public CompilationDto toCompilationDto(Compilation compilation) {
         return CompilationDto.builder()
                 .id(compilation.getId())

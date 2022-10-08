@@ -4,6 +4,8 @@ import ru.practicum.dto.AdminUpdateEventRequest;
 import ru.practicum.dto.EventFullDto;
 import ru.practicum.dto.EventShortDto;
 import ru.practicum.dto.NewEventDto;
+import ru.practicum.dto.NewRatingDto;
+import ru.practicum.dto.RatingDto;
 import ru.practicum.dto.SortType;
 import ru.practicum.dto.UpdateEventRequest;
 import ru.practicum.model.State;
