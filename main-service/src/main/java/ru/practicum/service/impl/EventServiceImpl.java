@@ -37,6 +37,7 @@ import ru.practicum.service.RequestServiceFull;
 import ru.practicum.service.UserServiceFull;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -174,10 +175,15 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public List<EventShortDto> getAllUsersEvents(int userId, int from, int size) {
-        return eventRepository.findAllByInitiatorId(userId, PageRequest.of(from / size, size)).stream()
+        List<EventShortDto> list = new ArrayList<>();
+        eventRepository.findAllByInitiatorId(userId, PageRequest.of(from / size, size)).stream()
                 .map(eventMapper::toEventShortDto)
-                .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
-                .collect(Collectors.toList());
+                .forEach(element -> {
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    list.add(element);
+                });
+        return list;
+
     }
 
     @Override
@@ -268,13 +274,16 @@ public class EventServiceImpl implements EventServiceFull {
                     .map(element -> categoryMapper.fromCategoryDto(categoryService.getCategoryByIdOrThrow(element)))
                     .collect(Collectors.toList());
         }
-        List<Event> toReturn = customEventRepository.getAllAdmin(userList, states, categoryList, rangeStart, rangeEnd, from, size);
-        return toReturn.stream()
+        List<EventFullDto> list = new ArrayList<>();
+        customEventRepository.getAllAdmin(userList, states, categoryList, rangeStart, rangeEnd, from, size).stream()
                 .map(eventMapper::toEventFullDto)
-                .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
-                .peek(element -> element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId())))
-                .peek(element -> element.setEventRating(ratingRepository.getEventRating(element.getId())))
-                .collect(Collectors.toList());
+                .forEach(element -> {
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId()));
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    list.add(element);
+                });
+        return list;
     }
 
     @Override
@@ -282,12 +291,16 @@ public class EventServiceImpl implements EventServiceFull {
             rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, SortType sort, int from, int size) {
 
         List<Event> toReturn = customEventRepository.getAllUser(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
-        return toReturn.stream()
+        List<EventFullDto> list = new ArrayList<>();
+        toReturn.stream()
                 .map(eventMapper::toEventFullDto)
-                .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
-                .peek(element -> element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId())))
-                .peek(element -> element.setEventRating(ratingRepository.getEventRating(element.getId())))
-                .collect(Collectors.toList());
+                .forEach(element -> {
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId()));
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    list.add(element);
+                });
+        return list;
     }
 
     @Override
