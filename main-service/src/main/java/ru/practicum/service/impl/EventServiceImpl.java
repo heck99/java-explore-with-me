@@ -7,29 +7,39 @@ import ru.practicum.dto.AdminUpdateEventRequest;
 import ru.practicum.dto.EventFullDto;
 import ru.practicum.dto.EventShortDto;
 import ru.practicum.dto.NewEventDto;
+import ru.practicum.dto.NewRatingDto;
+import ru.practicum.dto.ParticipationRequestDto;
+import ru.practicum.dto.RatingDto;
 import ru.practicum.dto.SortType;
 import ru.practicum.dto.UpdateEventRequest;
+import ru.practicum.dto.UserDto;
 import ru.practicum.exception.IncorrectParametersException;
 import ru.practicum.exception.NoAccessException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.mapper.EventMapper;
 
+import ru.practicum.mapper.RatingMapper;
 import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.Category;
 import ru.practicum.model.Event;
+import ru.practicum.model.Rating;
+import ru.practicum.model.RequestState;
 import ru.practicum.model.State;
 import ru.practicum.model.User;
 import ru.practicum.repository.CustomEventRepository;
 import ru.practicum.repository.EventRepository;
 
+import ru.practicum.repository.RatingRepository;
 import ru.practicum.service.CategoryService;
 import ru.practicum.service.EventServiceFull;
 import ru.practicum.service.RequestServiceFull;
 import ru.practicum.service.UserServiceFull;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,8 +56,12 @@ public class EventServiceImpl implements EventServiceFull {
 
     private final CustomEventRepository customEventRepository;
 
+    private final RatingMapper ratingMapper;
+
+    private final RatingRepository ratingRepository;
+
     public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper, UserMapper userMapper, CategoryMapper categoryMapper, UserServiceFull userService, CategoryService categoryService,
-                            @Lazy RequestServiceFull requestService, CustomEventRepository customEventRepository) {
+                            @Lazy RequestServiceFull requestService, CustomEventRepository customEventRepository, RatingMapper ratingMapper, RatingRepository ratingRepository) {
         this.eventRepository = eventRepository;
         this.eventMapper = eventMapper;
         this.userMapper = userMapper;
@@ -56,6 +70,8 @@ public class EventServiceImpl implements EventServiceFull {
         this.categoryService = categoryService;
         this.customEventRepository = customEventRepository;
         this.requestService = requestService;
+        this.ratingMapper = ratingMapper;
+        this.ratingRepository = ratingRepository;
     }
 
 
@@ -159,10 +175,15 @@ public class EventServiceImpl implements EventServiceFull {
 
     @Override
     public List<EventShortDto> getAllUsersEvents(int userId, int from, int size) {
-        return eventRepository.findAllByInitiatorId(userId, PageRequest.of(from / size, size)).stream()
+        List<EventShortDto> list = new ArrayList<>();
+        eventRepository.findAllByInitiatorId(userId, PageRequest.of(from / size, size)).stream()
                 .map(eventMapper::toEventShortDto)
-                .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
-                .collect(Collectors.toList());
+                .forEach(element -> {
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    list.add(element);
+                });
+        return list;
+
     }
 
     @Override
@@ -224,6 +245,8 @@ public class EventServiceImpl implements EventServiceFull {
         }
         EventFullDto toReturn = eventMapper.toEventFullDto(event);
         toReturn.setConfirmedRequests(requestService.countEventConfirmedRequests(toReturn.getId()));
+        toReturn.setAvgInitiatorRating(ratingRepository.getAVGUserRating(toReturn.getInitiator().getId()));
+        toReturn.setEventRating(ratingRepository.getEventRating(toReturn.getId()));
         return toReturn;
     }
 
@@ -238,8 +261,9 @@ public class EventServiceImpl implements EventServiceFull {
     }
 
     @Override
-    public List<EventFullDto> getAllAdmin(List<Integer> users, List<State> states, List<Integer> categories,
-                                          LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
+    public List<EventFullDto> getAllAdmin
+            (List<Integer> users, List<State> states, List<Integer> categories,
+             LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
         List<User> userList = null;
         if (users != null) {
             userList = users.stream().map(element -> userMapper.fromUserDto(userService.getUserByIdOrThrow(element))).collect(Collectors.toList());
@@ -250,23 +274,88 @@ public class EventServiceImpl implements EventServiceFull {
                     .map(element -> categoryMapper.fromCategoryDto(categoryService.getCategoryByIdOrThrow(element)))
                     .collect(Collectors.toList());
         }
-        List<Event> toReturn = customEventRepository.getAllAdmin(userList, states, categoryList, rangeStart, rangeEnd, from, size);
-        return toReturn.stream()
+        List<EventFullDto> list = new ArrayList<>();
+        customEventRepository.getAllAdmin(userList, states, categoryList, rangeStart, rangeEnd, from, size).stream()
                 .map(eventMapper::toEventFullDto)
-                .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
+                .forEach(element -> {
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId()));
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    list.add(element);
+                });
+        return list;
+    }
+
+    @Override
+    public List<EventFullDto> getAllUser(String text, List<Integer> categories, Boolean paid, LocalDateTime
+            rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, SortType sort, int from, int size) {
+
+        List<Event> toReturn = customEventRepository.getAllUser(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+        List<EventFullDto> list = new ArrayList<>();
+        toReturn.stream()
+                .map(eventMapper::toEventFullDto)
+                .forEach(element -> {
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    element.setAvgInitiatorRating(ratingRepository.getAVGUserRating(element.getInitiator().getId()));
+                    element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId()));
+                    list.add(element);
+                });
+        return list;
+    }
+
+    @Override
+    public RatingDto createRating(int userId, int eventId, NewRatingDto ratingDto) {
+        UserDto user = userService.getUserByIdOrThrow(userId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(String.format("событие с id = %d не найден", eventId)));
+        if (event.getEventDate().isAfter(LocalDateTime.now())) {
+            throw new IncorrectParametersException("Нельзя оценить событие, которое ещё не прошло");
+        }
+        Optional<ParticipationRequestDto> request = requestService.getRequestByEventAndUser(eventId, userId);
+
+        if (request.isEmpty()) {
+            throw new NoAccessException("оценивать могут только пользователи, которые имеют подтверждённый запрос");
+        }
+        if (request.get().getStatus() != RequestState.CONFIRMED) {
+            throw new NoAccessException("Нельзя оценить событие, которое не подтверждено");
+        }
+        if (ratingRepository.findByEventIdAndUserId(eventId, userId).isPresent()) {
+            throw new IncorrectParametersException("Пользователь уже оценивал событие");
+        }
+        Rating rating = ratingMapper.fromNewRatingDto(ratingDto);
+        rating.setUserId(user.getId());
+        rating.setEventId(event.getId());
+        return ratingMapper.toRatingDto(ratingRepository.save(rating));
+    }
+
+    @Override
+    public List<RatingDto> getAllRatingToEvent(int eventId, int from, int size) {
+        return ratingRepository.findAllByEventId(eventId, PageRequest.of(from / size, size)).stream()
+                .map(ratingMapper::toRatingDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<EventFullDto> getAllUser(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart,
-                                         LocalDateTime rangeEnd, Boolean onlyAvailable, SortType sort, int from, int size) {
+    public void deleteRating(int ratingId) {
+        ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new NotFoundException(String.format("ретинг с id = %d не найден", ratingId)));
+        ratingRepository.deleteById(ratingId);
+    }
 
-        List<Event> toReturn = customEventRepository.getAllUser(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
-        return toReturn.stream()
-                .map(eventMapper::toEventFullDto)
-                .peek(element -> element.setConfirmedRequests(requestService.countEventConfirmedRequests(element.getId())))
-                .collect(Collectors.toList());
-
+    @Override
+    public RatingDto updateRating(int userId, int ratingId, NewRatingDto ratingDto) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new NotFoundException(String.format("ретинг с id = %d не найден", ratingId)));
+        if (userId != rating.getUserId()) {
+            throw new NoAccessException("обновить рейтинг может только его создатель");
+        }
+        if (ratingDto.getDescription() != null) {
+            rating.setDescription(ratingDto.getDescription());
+        }
+        if (ratingDto.getMark() != null) {
+            rating.setMark(ratingDto.getMark());
+        }
+        return ratingMapper.toRatingDto(ratingRepository.save(rating));
     }
 
 }

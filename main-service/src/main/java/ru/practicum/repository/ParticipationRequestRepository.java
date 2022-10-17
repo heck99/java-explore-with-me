@@ -21,4 +21,5 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     int cancelAllRequests(int eventId);
 
     List<ParticipationRequest> findAllByEventId(int eventId);
+
 }

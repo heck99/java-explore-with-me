@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.SortType;
 import ru.practicum.client.Client;
 import ru.practicum.dto.EventFullDto;
+import ru.practicum.dto.RatingDto;
 import ru.practicum.dto.NewStatisticDto;
 import ru.practicum.service.EventService;
 
@@ -50,5 +51,12 @@ public class EventPublicController {
                 new NewStatisticDto("ewm", request.getRequestURI(), request.getRemoteAddr(),
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"))));
         return eventService.getAllUser(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+    }
+
+    @GetMapping("/{eventId}/ratings")
+    public List<RatingDto> getRatingForEvent(@RequestParam(name = "from", defaultValue = "0") int from,
+                                             @RequestParam(name = "size", defaultValue = "10") int size,
+                                             @PathVariable int eventId) {
+        return eventService.getAllRatingToEvent(eventId, from, size);
     }
 }

@@ -162,4 +162,10 @@ public class RequestServiceImpl implements RequestServiceFull {
     public int countEventConfirmedRequests(int eventId) {
         return requestRepository.countAllByEventIdAndStatus(eventId, RequestState.CONFIRMED);
     }
+
+    @Override
+    public Optional<ParticipationRequestDto> getRequestByEventAndUser(int eventId, int userId) {
+        return requestRepository.findByEventIdAndRequesterId(eventId, userId)
+                .map(requestMapper::toParticipationRequestDto);
+    }
 }

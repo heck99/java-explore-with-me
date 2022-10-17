@@ -76,3 +76,19 @@ CREATE TABLE IF NOT EXISTS compilations_events
         REFERENCES compilations (compilation_id)
         ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS ratings
+(
+    rating_id   integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    description text    NOT NULL,
+    mark        integer NOT NULL,
+    event_id    integer,
+    user_id     integer,
+    PRIMARY KEY (rating_id),
+    CONSTRAINT events_FK_rating FOREIGN KEY (event_id)
+        REFERENCES events (event_id)
+        ON DELETE CASCADE,
+    CONSTRAINT users_FK_rating FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+        ON DELETE CASCADE
+);

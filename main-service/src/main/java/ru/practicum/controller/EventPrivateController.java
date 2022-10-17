@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.EventFullDto;
 import ru.practicum.dto.EventShortDto;
 import ru.practicum.dto.NewEventDto;
+import ru.practicum.dto.NewRatingDto;
+import ru.practicum.dto.RatingDto;
 import ru.practicum.dto.UpdateEventRequest;
 import ru.practicum.service.EventService;
 
@@ -50,5 +52,17 @@ public class EventPrivateController {
     @PatchMapping("/{eventId}")
     public EventFullDto cancelEvent(@PathVariable Integer userId, @PathVariable Integer eventId) {
         return eventService.cancelEvent(eventId, userId);
+    }
+
+    @PostMapping("/{eventId}/ratings")
+    public RatingDto createRating(@PathVariable Integer userId, @PathVariable Integer eventId,
+                                  @Valid @RequestBody NewRatingDto rating) {
+        return eventService.createRating(userId, eventId, rating);
+    }
+
+    @PatchMapping("/{eventId}/ratings")
+    public RatingDto updateRating(@PathVariable Integer userId, @PathVariable Integer eventId,
+                                  @RequestBody NewRatingDto rating) {
+        return eventService.updateRating(userId, eventId, rating);
     }
 }

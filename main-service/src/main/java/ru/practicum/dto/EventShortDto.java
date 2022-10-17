@@ -34,4 +34,10 @@ public class EventShortDto {
     private String title;
 
     private Integer views;
+
+    //средний рейтинг прошедших событий от данного организатора
+    private Double avgInitiatorRating;
+
+    // рейтинг события
+    private Double eventRating;
 }
