@@ -29,7 +29,7 @@ public class ExceptionController {
     @ResponseBody
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionDto onNotFound(IncorrectParametersException e) {
+    public ExceptionDto onNotFound(NotFoundException e) {
         return new ExceptionDto(null, "Объект не найден", e.getMessage(), "NOT_FOUND", LocalDateTime.now());
     }
 
